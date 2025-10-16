@@ -20,6 +20,7 @@ export function AuthProvider({ children }) {
 
     api.get('/users/me')
       .then(res => {
+        console.log(res.data);
         setIsAuthenticated(true);
         setUser(res.data);
       })
