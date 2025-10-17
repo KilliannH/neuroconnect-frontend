@@ -18,6 +18,10 @@ export default function Feed() {
   const [comments, setComments] = useState({});
   const [newComments, setNewComments] = useState({});
   const [likedPosts, setLikedPosts] = useState([]);
+  const [showCommentsModal, setShowCommentsModal] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
+  const [fullComments, setFullComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
 
   const { user } = useAuth();
   console.log(user);
@@ -33,9 +37,9 @@ export default function Feed() {
         setPosts(res.data);
         // Récupère les posts déjà likés par l'utilisateur
         const liked = res.data
-        .filter(p => p.isLikedByCurrentUser)
-        .map(p => p.id);
-      setLikedPosts(liked);
+          .filter(p => p.isLikedByCurrentUser)
+          .map(p => p.id);
+        setLikedPosts(liked);
       })
       .catch(() => setError("Impossible de charger les posts."))
       .finally(() => setLoading(false));
@@ -56,6 +60,23 @@ export default function Feed() {
       })
       .catch(() => alert("Erreur lors de la création du post."))
       .finally(() => setCreating(false));
+  };
+
+  const openCommentsModal = (post) => {
+    setSelectedPost(post);
+    setShowCommentsModal(true);
+    setLoadingComments(true);
+
+    api.get(`/comments/${post.id}`)
+      .then(res => setFullComments(res.data))
+      .catch(() => alert("Erreur lors du chargement des commentaires."))
+      .finally(() => setLoadingComments(false));
+  };
+
+  const closeCommentsModal = () => {
+    setShowCommentsModal(false);
+    setSelectedPost(null);
+    setFullComments([]);
   };
 
   const handleCommentChange = (postId, value) => {
@@ -112,12 +133,12 @@ export default function Feed() {
           <div key={post.id} className="bg-white p-4 rounded-lg shadow-md">
             <div className="flex items-center gap-2 mb-2">
               <img
-                src={post.author?.avatarUrl || 'https://i.pravatar.cc/40'}
+                src={post.authorAvatar || 'https://i.pravatar.cc/40'}
                 alt="avatar"
                 className="w-8 h-8 rounded-full"
               />
               <div>
-                <p className="font-semibold text-sm">{post.author?.username || 'Anonyme'}</p>
+                <p className="font-semibold text-sm">{post.authorUsername || 'Anonyme'}</p>
                 <p className="text-xs text-gray-500">{dayjs(post.createdAt).fromNow()}</p>
               </div>
             </div>
@@ -144,12 +165,20 @@ export default function Feed() {
 
             {/* Liste des commentaires */}
             <div className="space-y-2 mt-2">
-              {post.comments?.map(comment => (
+              {post.lastComments?.map(comment => (
                 <div key={comment.id} className="text-sm bg-gray-100 p-2 rounded-md">
-                  <span className="font-semibold">{comment.author.username} :</span>{' '}
+                  <span className="font-semibold">{comment.authorUsername} :</span>{' '}
                   {comment.content}
                 </div>
               ))}
+              {post.commentCount > 5 && (
+                <button
+                  onClick={() => openCommentsModal(post)}
+                  className="text-blue-600 text-sm mt-1 hover:underline"
+                >
+                  Voir tous les commentaires ({post.commentCount})
+                </button>
+              )}
             </div>
 
             {/* Champ pour ajouter un commentaire */}
@@ -201,6 +230,38 @@ export default function Feed() {
             >
               {creating ? 'Publication...' : 'Publier'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {showCommentsModal && selectedPost && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center px-4">
+          <div className="bg-white w-full max-w-md rounded-lg shadow-xl p-4 relative max-h-[80vh] overflow-y-auto">
+            <button
+              onClick={closeCommentsModal}
+              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <h2 className="text-lg font-bold mb-2">💬 Commentaires</h2>
+
+            {loadingComments ? (
+              <p className="text-gray-500 text-sm">Chargement...</p>
+            ) : (
+              <div className="space-y-2 mt-2">
+                {fullComments.map(comment => (
+                  <div key={comment.id} className="bg-gray-100 p-2 rounded-md text-sm">
+                    <p className="font-semibold">{comment.authorUsername}</p>
+                    <p>{comment.content}</p>
+                  </div>
+                ))}
+
+                {fullComments.length === 0 && (
+                  <p className="text-sm text-gray-500">Aucun commentaire pour l’instant.</p>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -23,8 +23,10 @@ export default function Navbar() {
                 <Newspaper className="w-4 h-4" />
                 Fil
               </Link>
+              <Link to="/profile" className="hover:underline">
+                Mon profil
+              </Link>
               <span className="flex items-center gap-1 text-gray-600">
-                <User className="w-4 h-4" />
                 {user?.username}
               </span>
               <button
