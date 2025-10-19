@@ -9,6 +9,7 @@ import Feed from './pages/Feed';
 import Login from './pages/Login';
 import Profile from './pages/Profile';
 import Register from './pages/Register';
+import PostDetail from './pages/PostDetail';
 
 export default function App() {
   return (
@@ -17,7 +18,6 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/profile" element={<Profile />} />
         <Route path="/register" element={<Register />} />
 
         {/* 🛡️ Route protégée */}
@@ -27,6 +27,22 @@ export default function App() {
             <PrivateRoute>
               <Feed />
             </PrivateRoute>
+          }
+        />
+        <Route 
+          path='/posts/:id' 
+          element={
+          <PrivateRoute>
+            <PostDetail />
+          </PrivateRoute>
+          }
+        />
+        <Route 
+          path="/profile"
+          element={
+          <PrivateRoute>
+            <Profile />
+          </PrivateRoute>
           }
         />
       </Routes>

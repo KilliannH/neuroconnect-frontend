@@ -1,10 +1,12 @@
 import { useAuth } from "../context/AuthContext";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 import dayjs from "dayjs";
 import { Pencil } from "lucide-react";
 
 export default function Profile() {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,11 @@ export default function Profile() {
       ) : (
         <div className="space-y-4">
           {posts.map(post => (
-            <div key={post.id} className="bg-white p-4 rounded-lg shadow">
+            <div
+              key={post.id}
+              onClick={() => navigate(`/posts/${post.id}`)}
+              className="bg-white p-4 rounded-lg shadow cursor-pointer hover:bg-gray-50 transition"
+            >
               <p className="text-sm text-gray-800">{post.content}</p>
               <p className="text-xs text-gray-500 mt-1">
                 Publié le {dayjs(post.createdAt).format("DD MMM YYYY à HH:mm")}
